@@ -39,6 +39,31 @@ Theta2_grad = zeros(size(Theta2));
 %         cost function computation is correct by verifying the cost
 %         computed in ex4.m
 %
+
+K = num_labels;
+Y = eye(K)(y,:);
+
+% Feedforward and cost function
+
+a1 = [ones(m, 1), X]; % results in [5000, 401]
+a2 = sigmoid(Theta1 * a1'); % results in [25, 5000]
+a2 = [ones(1, size(a2, 2)); a2]; % results in [26, 5000]
+h = sigmoid(Theta2 * a2); % results in [10, 5000]
+
+costPositive = -Y .* log(h)';
+costNegative =  (1 - Y) .* log(1 - h)';
+cost = costPositive - costNegative;
+
+J = (1/m) * sum(cost(:));
+
+% Regularization
+
+Theta1Filtered = Theta1(:,2:end);
+Theta2Filtered = Theta2(:,2:end);
+reg = (lambda / (2*m)) * (sumsq(Theta1Filtered(:)) + sumsq(Theta2Filtered(:)));
+J = J + reg;
+
+
 % Part 2: Implement the backpropagation algorithm to compute the gradients
 %         Theta1_grad and Theta2_grad. You should return the partial derivatives of
 %         the cost function with respect to Theta1 and Theta2 in Theta1_grad and
@@ -54,6 +79,33 @@ Theta2_grad = zeros(size(Theta2));
 %               over the training examples if you are implementing it for the 
 %               first time.
 %
+
+for t = 1:m
+
+	% Input layer, where l=1:
+	a1 = [1; X(t,:)'];
+
+	% Hidden layers, where l=2:
+	z2 = Theta1 * a1;
+	a2 = [1; sigmoid(z2)];
+
+	z3 = Theta2 * a2;
+	a3 = sigmoid(z3);
+
+	yy = ([1:num_labels]==y(t))';
+  
+	% Delta values
+	delta_3 = a3 - yy;
+	delta_2 = (Theta2' * delta_3) .* [1; sigmoidGradient(z2)];
+	delta_2 = delta_2(2:end); % Taking of the bias row
+
+	% delta_1 is not calculated as the error is not associated with the input    
+
+	% Big delta update
+	Theta1_grad = Theta1_grad + delta_2 * a1';
+	Theta2_grad = Theta2_grad + delta_3 * a2';
+end
+
 % Part 3: Implement regularization with the cost function and gradients.
 %
 %         Hint: You can implement this around the code for
@@ -62,23 +114,8 @@ Theta2_grad = zeros(size(Theta2));
 %               and Theta2_grad from Part 2.
 %
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Theta1_grad = (1/m) * Theta1_grad + (lambda/m) * [zeros(size(Theta1, 1), 1) Theta1(:,2:end)];
+Theta2_grad = (1/m) * Theta2_grad + (lambda/m) * [zeros(size(Theta2, 1), 1) Theta2(:,2:end)];
 
 % -------------------------------------------------------------
 
