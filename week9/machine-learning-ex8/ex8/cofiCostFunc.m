@@ -40,20 +40,23 @@ Theta_grad = zeros(size(Theta));
 %                     partial derivatives w.r.t. to each element of Theta
 %
 
+% Collaborative filtering cost function
 
+errors = (X*Theta' - Y) .* R;
 
+%  Regularised cost function
 
+regularizationTheta = lambda/2 * sum(sum(Theta.^2));
 
+regularizationX = lambda/2 * sum(sum(X.^2));
 
+% Collaborative filtering gradient and regularised gradient
 
+J = 1/2 * sum(sum(errors .^2)) + regularizationTheta + regularizationX;
 
+X_grad = errors * Theta + lambda * X;
 
-
-
-
-
-
-
+Theta_grad = errors' * X + lambda * Theta;
 
 % =============================================================
 
